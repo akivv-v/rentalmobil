@@ -60,7 +60,12 @@ class RentalUserController extends Controller
                 ]
             );
 
-            $tgl_kembali = Carbon::parse($request->tanggal_mulai)->addDays($request->lama_sewa)->toDateString();
+            $lamaSewa = (int) $request->lama_sewa;
+
+            $tgl_kembali = Carbon::parse($request->tanggal_mulai)
+                ->addDays($lamaSewa)
+                ->toDateString();
+
 
             // 2. Simpan ke Tabel Rentals (Sistem Langsung Lunas)
             $rental = Rental::create([
@@ -112,8 +117,8 @@ class RentalUserController extends Controller
     public function kembalikan($id)
 {
     // Cari data rental milik user yang sedang login
-    $rental = Rental::where('user_id', auth())->findOrFail($id);
-
+    $rental = Rental::where('user_id', Auth::id())->findOrFail($id);
+    
     if ($rental->status !== 'disewa') {
         return redirect()->back()->with('error', 'Mobil belum dalam status disewa.');
     }
