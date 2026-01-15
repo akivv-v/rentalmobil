@@ -6,190 +6,229 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin | Rental Mobil</title>
 
-    <!-- Bootstrap -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <style>
+        :root {
+            --sidebar-bg: #ffffff;
+            --content-bg: #f8fafc;
+            --primary-dark: #1e293b;
+            --accent-color: #3b82f6;
+            --text-muted: #64748b;
+        }
+
         body {
-            background: #f8fafc;
-            font-family: 'Segoe UI', sans-serif;
+            background: var(--content-bg);
+            color: var(--primary-dark);
+            overflow-x: hidden;
         }
 
-        .admin-title {
-            font-family: 'Segoe UI', sans-serif;
-            font-weight: 600;
-            font-size: 2rem;
-            letter-spacing: 1.5px;
-            color: #ffffff;
+        /* SIDEBAR STYLING */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            position: fixed;
+            left: 0;
+            top: 0;
+            border-right: 1px solid #e2e8f0;
+            padding: 30px 20px;
+            z-index: 1000;
+        }
+
+        .brand-section {
+            padding: 0 15px 30px 15px;
             text-align: center;
-            margin-bottom: 1.8rem;
-            position: relative;
         }
 
-        .admin-title::after {
-            content: "";
-            width: 150px;
-            height: 3px;
-            background: #49628c;
-            /* light-cyan accent */
-            display: block;
-            margin: 8px auto 0 auto;
-            border-radius: 6px;
-        }
-
-        .logo-circle {
-            width: 90px;
-            /* ukuran lingkaran */
-            height: 90px;
-            border-radius: 50%;
+        .logo-wrapper {
+            width: 50px;
+            height: 50px;
+            background: var(--primary-dark);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 10px auto;
-            /* agar posisi center */
-            overflow: hidden;
-            /* supaya logo rapi */
+            margin: 0 auto 15px auto;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
         .admin-logo {
-            width: 60px;
-            /* atur ukuran logo */
+            width: 30px;
             height: auto;
-            object-fit: contain;
+            filter: brightness(0) invert(1);
         }
 
-        .sidebar {
-            width: 240px;
-            height: 100vh;
-            background: #1e3038;
-            /* dark slate premium */
-            position: fixed;
-            padding-top: 25px;
-            transition: .3s;
-            border-right: 1px solid #0f172a;
+        .admin-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin: 0;
+            letter-spacing: -0.5px;
         }
 
-        .sidebar h4 {
-            font-size: 20px;
-            color: #fff;
-            letter-spacing: .8px;
-            font-weight: 600;
-        }
-
-        .sidebar small {
-            color: #94a3b8;
-            /* abu */
-            margin-left: 15px;
-            font-size: 12px;
+        /* NAVIGATION */
+        .nav-label {
+            font-size: 0.7rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: .7px;
-        }
-
-        .sidebar a {
-            color: #cbd5e1;
-            /* abu terang */
-            padding: 12px 20px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin: 25px 0 10px 15px;
             display: block;
-            font-size: 15px;
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            margin-bottom: 5px;
+        }
+
+        .nav-link-custom {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: var(--text-muted);
             text-decoration: none;
-            border-radius: 6px;
-            margin: 3px 10px;
-            transition: .2s ease-in-out;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
         }
 
-        .sidebar a:hover,
-        .sidebar a.active {
-            background: #49628c;
-            /* cyan modern */
-            color: #fff !important;
-            transform: translateX(3px);
-            /* efek maju */
-            font-weight: 600;
+        .nav-link-custom i {
+            font-size: 1.1rem;
+            margin-right: 12px;
         }
 
-        .btn:hover {
-            background: #64748b !important;
-            color: #fff !important;
+        .nav-link-custom:hover {
+            background: #f1f5f9;
+            color: var(--primary-dark);
         }
 
+        .nav-link-custom.active {
+            background: var(--primary-dark);
+            color: #ffffff !important;
+            box-shadow: 0 10px 15px -3px rgba(30, 41, 59, 0.2);
+        }
+
+        /* CONTENT AREA */
         .content {
             margin-left: 260px;
-            padding: 30px;
+            padding: 40px;
+            min-height: 100vh;
         }
 
-        .sidebar-link {
-            background: transparent;
+        /* LOGOUT BUTTON */
+        .btn-logout {
+            margin-top: 20px;
+            width: 100%;
             border: none;
-            color: #cbd5e1;
-            padding: 12px 20px;
-            font-size: 15px;
-            border-radius: 6px;
-            margin: 3px 10px;
-            transition: .2s ease-in-out;
-            cursor: pointer;
-        }
-
-        .sidebar-link:hover {
-            background: #49628c;
-            color: #fff !important;
-            transform: translateX(3px);
+            background: #fff1f2;
+            color: #e11d48;
+            padding: 12px;
+            border-radius: 12px;
             font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
         }
 
-        .sidebar-link:active {
-            transform: translateX(3px);
+        .btn-logout:hover {
+            background: #ffe4e6;
+            transform: translateY(-2px);
+        }
+
+        /* SCROLLBAR CUSTOM */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="sidebar">
-        <div class="logo-circle">
-            <img src="{{ asset('storage/logo.png') }}" class="admin-logo" alt="Logo">
+    <aside class="sidebar">
+        <div class="brand-section">
+            <div class="logo-wrapper">
+                <img src="{{ asset('storage/logo.png') }}" class="admin-logo" alt="Logo">
+            </div>
+            <h4 class="admin-title">Rent's Bill</h4>
         </div>
 
-        <h4 class="admin-title">Rent's Bill</h4>
+        <nav>
+            <span class="nav-label">Utama</span>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="{{ route('admin.dashboard') }}" class="nav-link-custom {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+                    </a>
+                </li>
+            </ul>
 
-        <small>Utama</small>
-        <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-            <i class="bi bi-speedometer2 me-2"></i> Dashboard
-        </a>
+            <span class="nav-label">Operasional</span>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="{{ route('admin.rental.index') }}" class="nav-link-custom {{ request()->routeIs('admin.rental.*') ? 'active' : '' }}">
+                        <i class="bi bi-wallet2"></i> Transaksi Rental
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('admin.laporan.index') }}" class="nav-link-custom {{ request()->routeIs('admin.laporan.*') ? 'active' : '' }}">
+                        <i class="bi bi-bar-chart-line-fill"></i> Laporan Bulanan
+                    </a>
+                </li>
+            </ul>
 
-        <small class="mt-3 d-block">Operasional</small>
-        <a href="{{ route('admin.rental.index') }}" class="{{ request()->routeIs('admin.rental.*') ? 'active' : '' }}">
-            <i class="bi bi-receipt-cutoff me-2"></i> Transaksi Rental
-        </a>
+            <span class="nav-label">Master Data</span>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="{{ route('admin.mobil.index') }}" class="nav-link-custom {{ request()->routeIs('admin.mobil.*') ? 'active' : '' }}">
+                        <i class="bi bi-car-front"></i> Data Mobil
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('admin.penyewa.index') }}" class="nav-link-custom {{ request()->routeIs('admin.penyewa.*') ? 'active' : '' }}">
+                        <i class="bi bi-people"></i> Data Penyewa
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('admin.karyawan.index') }}" class="nav-link-custom {{ request()->routeIs('admin.karyawan.*') ? 'active' : '' }}">
+                        <i class="bi bi-person-badge"></i> Data Karyawan
+                    </a>
+                </li>
+            </ul>
 
-        <small class="mt-3 d-block">Master Data</small>
-        <a href="{{ route('admin.mobil.index') }}" class="{{ request()->routeIs('admin.mobil.*') ? 'active' : '' }}">
-            <i class="bi bi-car-front-fill me-2"></i> Data Mobil
-        </a>
-        <a href="{{ route('admin.penyewa.index') }}"
-            class="{{ request()->routeIs('admin.penyewa.*') ? 'active' : '' }}">
-            <i class="bi bi-people me-2"></i> Data Penyewa
-        </a>
-        <a href="{{ route('admin.karyawan.index') }}"
-            class="{{ request()->routeIs('admin.karyawan.*') ? 'active' : '' }}">
-            <i class="bi bi-person-lines-fill me-2"></i> Data Karyawan
-        </a>
+            <span class="nav-label">Sistem</span>
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="btn-logout">
+                    <i class="bi bi-box-arrow-right me-2"></i> Keluar 
+                </button>
+            </form>
+        </nav>
+    </aside>
 
-        <small class="mt-3 d-block">Sistem</small>
-        <form action="{{ route('logout') }}" method="POST" class="mt-1">
-            @csrf
-            <button type="submit" class="sidebar-link text-start w-100 text-danger">
-                <i class="bi bi-box-arrow-right me-2"></i> Logout
-            </button>
-        </form>
-    </div>
-
-    <div class="content">
+    <main class="content">
         @yield('content')
-    </div>
+    </main>
 
 </body>
-
 </html>

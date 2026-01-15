@@ -11,7 +11,6 @@
 
     <style>
         body {
-            font-family: 'Poppins', sans-serif;
             background: #e9f5ff;
         }
 

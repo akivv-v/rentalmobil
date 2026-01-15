@@ -5,102 +5,171 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Rental;
 use App\Models\Mobil;
+use App\Models\Invoice;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class RentalController extends Controller
 {
-    /**
-     * Menampilkan semua data transaksi yang masuk dari user.
-     */
     public function index(Request $request)
     {
         $search = $request->search;
 
-        $rentals = Rental::with(['penyewa', 'mobil'])
+        $rentals = Rental::with(['penyewa', 'mobil', 'invoice'])
             ->when($search, function ($query) use ($search) {
-                $query->whereHas('penyewa', function ($q) use ($search) {
-                    $q->where('nama', 'LIKE', "%$search%");
-                })
-                    ->orWhereHas('mobil', function ($q) use ($search) {
-                        $q->where('nama_mobil', 'LIKE', "%$search%");
-                    });
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('penyewa', function ($qp) use ($search) {
+                        $qp->where('nama', 'like', "%{$search}%");
+                    })
+                        ->orWhereHas('mobil', function ($qm) use ($search) {
+                            $qm->where('nama_mobil', 'like', "%{$search}%");
+                        });
+                });
             })
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         return view('admin.rental.index', compact('rentals'));
     }
 
-    /**
-     * Detail transaksi untuk melihat bukti bayar/rincian.
-     */
     public function show($id)
     {
-        $rental = Rental::with(['penyewa', 'mobil', 'pembayaran'])->findOrFail($id);
+        $rental = Rental::with(['penyewa', 'mobil', 'invoice'])->findOrFail($id);
         return view('admin.rental.show', compact('rental'));
     }
 
     /**
-     * PENGGANTI MENU PEMBAYARAN
-     * Fungsi untuk konfirmasi uang masuk.
+     * FUNGSI UNTUK KONFIRMASI PEMBAYARAN (Baik Transfer maupun Kantor)
+     * Digunakan dari halaman Detail maupun Tombol Aksi di Index
      */
-    public function konfirmasiBayar($id)
+    public function konfirmasiPembayaran(Request $request, $id)
     {
-        $rental = Rental::findOrFail($id);
+        // Cari rental atau invoice. Di sini kita asumsikan $id adalah ID Rental 
+        // agar konsisten dengan route admin.rental.konfirmasi
+        $rental = Rental::with(['mobil', 'invoice'])->findOrFail($id);
 
-        if ($rental->status !== 'booking') {
-            return redirect()->back()->with('error', 'Transaksi ini sudah dikonfirmasi sebelumnya.');
+        if (!$rental->invoice) {
+            return back()->with('error', 'Invoice tidak ditemukan.');
         }
 
-        // 1. Ubah status rental menjadi disewa
-        $rental->update(['status' => 'disewa']);
+        // Jika metode pembayaran adalah 'kantor' dan ada input nominal, validasi dulu
+        if ($rental->invoice->metode_pembayaran === 'kantor' && $request->has('nominal')) {
+            $request->validate([
+                'nominal' => 'required|numeric|min:' . $rental->invoice->total_tagihan
+            ], [
+                'nominal.min' => 'Nominal yang dimasukkan harus lunas (Rp ' . number_format($rental->invoice->total_tagihan, 0, ',', '.') . ')'
+            ]);
+        }
 
-        // 2. PERBAIKAN DI SINI:
-        // Pastikan 'tidak tersedia' adalah string. 
-        // Jika database Anda menggunakan ENUM, pastikan tulisannya SAMA PERSIS (misal: 'tidak_tersedia' atau 'booked')
-        $rental->mobil->update([
-            'status' => 'disewa'
-        ]);
+        DB::beginTransaction();
+        try {
+            // 1. Update Invoice
+            $rental->invoice->update([
+                'status'         => 'lunas',
+                'jumlah_dibayar' => $rental->invoice->total_tagihan,
+                'tanggal_bayar'  => Carbon::now(),
+            ]);
 
-        return redirect()->route('admin.rental.index')->with('success', 'Pembayaran diverifikasi. Mobil resmi disewa.');
+            // 2. Update Status Rental menjadi 'disewa'
+            $rental->update([
+                'status'     => 'disewa',
+                'dp'         => $rental->invoice->total_tagihan,
+                'sisa_bayar' => 0,
+            ]);
+
+            // 3. Update Status Mobil menjadi 'disewa'
+            $rental->mobil->update([
+                'status' => 'disewa'
+            ]);
+
+            DB::commit();
+            return back()->with('success', 'Pembayaran berhasil dikonfirmasi. Unit kini dalam status DISEWA.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 
     /**
-     * PENGGANTI MENU PENGEMBALIAN
-     * Fungsi untuk menyelesaikan rental saat mobil kembali.
+     * FUNGSI KHUSUS UNTUK TOMBOL "BAYAR DI KANTOR" DI HALAMAN INDEX
+     * Jika Anda mengirimkan ID Invoice langsung dari tombol cash di tabel
      */
-    // Tambahkan ini di dalam RentalController Admin
+    public function bayarDiKantor(Request $request, $id)
+    {
+        $invoice = Invoice::with('rental.mobil')->findOrFail($id);
+        $rental = $invoice->rental;
+
+        DB::beginTransaction();
+        try {
+            $invoice->update([
+                'status'         => 'lunas',
+                'jumlah_dibayar' => $invoice->total_tagihan,
+                'tanggal_bayar'  => Carbon::now(),
+            ]);
+
+            $rental->update([
+                'status'     => 'disewa',
+                'dp'         => $invoice->total_tagihan,
+                'sisa_bayar' => 0,
+            ]);
+
+            $rental->mobil->update([
+                'status' => 'disewa'
+            ]);
+
+            DB::commit();
+            return back()->with('success', 'Pembayaran tunai berhasil dicatat.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal mencatat pembayaran: ' . $e->getMessage());
+        }
+    }
+
     public function setKembali($id)
     {
-        $rental = Rental::findOrFail($id);
+        $rental = Rental::with('mobil')->findOrFail($id);
 
-        // 1. Update status rental jadi selesai
-        $rental->update(['status' => 'selesai']);
+        DB::beginTransaction();
+        try {
+            $rental->update(['status' => 'selesai']);
 
-        // 2. Update status mobil jadi tersedia lagi
-        $rental->mobil->update(['status' => 'tersedia']);
+            // Kembalikan status mobil jadi tersedia
+            $rental->mobil->update(['status' => 'tersedia']);
 
-        return redirect()->back()->with('success', 'Mobil telah berhasil dikembalikan!');
+            DB::commit();
+            return back()->with('success', 'Mobil berhasil dikembalikan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal memproses pengembalian.');
+        }
     }
 
-    /**
-     * Menghapus transaksi jika diperlukan.
-     */
     public function destroy($id)
     {
-        $rental = Rental::findOrFail($id);
+        $rental = Rental::with(['mobil', 'invoice'])->findOrFail($id);
 
-        // Jika transaksi dibatalkan, pastikan mobil kembali tersedia jika sebelumnya berstatus disewa
-        if ($rental->status == 'disewa') {
-            $rental->mobil->update(['status' => 'tersedia']);
+        DB::beginTransaction();
+        try {
+            // Jika dihapus saat status masih disewa, bebaskan mobilnya dulu
+            if ($rental->status === 'disewa' || $rental->status === 'booking') {
+                $rental->mobil->update([
+                    'status' => 'tersedia'
+                ]);
+            }
+
+            if ($rental->invoice) {
+                $rental->invoice->delete();
+            }
+
+            $rental->delete();
+
+            DB::commit();
+            return back()->with('success', 'Transaksi berhasil dihapus.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menghapus transaksi.');
         }
-
-        $rental->delete();
-
-        return redirect()->route('admin.rental.index')->with('success', 'Data transaksi berhasil dihapus!');
     }
-
-    /* Catatan: Method create, store, edit, dan update tidak digunakan 
-       karena Admin hanya menerima data inputan sepenuhnya dari User.
-    */
 }

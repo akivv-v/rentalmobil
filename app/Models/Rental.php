@@ -52,4 +52,9 @@ class Rental extends Model
     {
         return $this->hasOne(Pengembalian::class);
     }
+
+    public function invoice()
+    {
+        return $this->hasOne(Invoice::class);
+    }
 }

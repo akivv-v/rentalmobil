@@ -25,7 +25,6 @@
     <div class="container mb-5">
         <div class="row g-4">
 
-            {{-- Jika tidak ada data --}}
             @if ($mobils->isEmpty())
                 <div class="col-12">
                     <div class="alert alert-info text-center">
@@ -57,28 +56,41 @@
                             </p>
 
                             {{-- Info Mobil --}}
-                            <div class="d-flex justify-content-between text-muted small mb-3">
+                            <div class="d-flex justify-content-between text-muted small mb-4">
                                 <span><i class="bi bi-calendar-fill me-1"></i> {{ $mobil->tahun }}</span>
                                 <span><i class="bi bi-car-front-fill me-1"></i> {{ strtoupper($mobil->plat_nomor) }}</span>
 
-                                @if ($mobil->status == 'tersedia')
+                                @if (strtolower($mobil->status) == 'tersedia')
                                     <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Tersedia</span>
                                 @else
                                     <span class="text-danger"><i class="bi bi-x-circle-fill me-1"></i> Disewa</span>
                                 @endif
                             </div>
 
-                            {{-- Tombol --}}
-                            @if (strtolower($mobil->status) == 'tersedia')
-                                <a href="{{ route('user.rental.create', $mobil->id) }}" 
-                                    class="btn btn-dark d-block rounded-3 fw-semibold py-2">
-                                    Sewa Sekarang
-                                </a>
-                            @else
-                                <button class="btn btn-secondary d-block rounded-3 fw-semibold py-2" disabled>
-                                    Sedang Disewa
-                                </button>
-                            @endif
+                            {{-- LOGIKA TOMBOL SEWA (Hanya satu blok di sini) --}}
+                            <div class="mt-auto">
+                                @if (strtolower($mobil->status) == 'tersedia')
+                                    @if ($hasActiveRental)
+                                        {{-- Tombol Pemicu Alert --}}
+                                        <button onclick="alertActiveRental()"
+                                            class="btn btn-dark d-block w-100 rounded-3 fw-semibold py-2">
+                                            Sewa Sekarang
+                                        </button>
+                                    @else
+                                        {{-- Link Sewa Normal --}}
+                                        <a href="{{ route('user.rental.create', $mobil->id) }}"
+                                            class="btn btn-dark d-block w-100 rounded-3 fw-semibold py-2 text-decoration-none text-center">
+                                            Sewa Sekarang
+                                        </a>
+                                    @endif
+                                @else
+                                    {{-- Tombol Disabled jika mobil sedang dipinjam orang lain --}}
+                                    <button class="btn btn-secondary d-block w-100 rounded-3 fw-semibold py-2" disabled>
+                                        Sedang Disewa
+                                    </button>
+                                @endif
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -86,4 +98,17 @@
 
         </div>
     </div>
+
+    {{-- Script SweetAlert2 --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function alertActiveRental() {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Gagal Menyewa',
+                text: 'Anda masih memiliki penyewaan yang aktif. Selesaikan atau kembalikan mobil sebelumnya terlebih dahulu!',
+                confirmButtonColor: '#212529',
+            });
+        }
+    </script>
 @endsection

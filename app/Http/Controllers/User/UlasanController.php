@@ -5,52 +5,44 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Ulasan;
-use App\Models\Mobil;
 use Illuminate\Support\Facades\Auth;
 
 class UlasanController extends Controller
 {
     public function index()
     {
-        // Mengambil semua ulasan dengan relasi user dan mobil
-        $semua_ulasan = Ulasan::with(['user', 'mobil'])->latest()->get();
+        // Mengambil semua ulasan dengan relasi user saja (relasi mobil dihapus)
+        $semua_ulasan = Ulasan::with('user')->latest()->get();
 
-        // Ambil mobil yang pernah disewa user ini untuk dropdown ulasan
-        // Memastikan user hanya bisa mengulas mobil yang benar-benar pernah mereka sewa
-        $mobils_pernah_disewa = Mobil::whereHas('rentals', function ($q) {
-            $q->whereHas('penyewa', function ($query) {
-                $query->where('user_id', Auth::id());
-            });
-        })->get();
-
-        return view('user.ulasan.index', compact('semua_ulasan', 'mobils_pernah_disewa'));
+        // Variabel $mobils_pernah_disewa dihapus karena ulasan bersifat umum
+        return view('user.ulasan.index', compact('semua_ulasan'));
     }
 
     public function store(Request $request)
     {
+        // Validasi diperbarui: mobil_id dihapus
         $request->validate([
-            'mobil_id' => 'required|exists:mobils,id',
             'bintang'  => 'required|integer|min:1|max:5',
             'komentar' => 'required|string|min:5'
         ]);
 
-        // Cek apakah user sudah pernah memberi ulasan untuk mobil ini agar tidak spam
+        // Cek apakah user sudah pernah memberi ulasan umum (opsional)
+        // Jika ingin user hanya boleh memberi 1 ulasan umum seumur hidup:
         $sudahUlasan = Ulasan::where('user_id', Auth::id())
-                             ->where('mobil_id', $request->mobil_id)
+                             ->whereNull('mobil_id') // Mencari ulasan yang tidak terikat mobil
                              ->exists();
 
         if ($sudahUlasan) {
-            return back()->with('error', 'Anda sudah memberikan ulasan untuk mobil ini.');
+            return back()->with('error', 'Anda sudah pernah memberikan ulasan layanan.');
         }
 
         Ulasan::create([
             'user_id'  => Auth::id(),
-            'mobil_id' => $request->mobil_id,
+            'mobil_id' => null, // Set null karena ini ulasan umum
             'bintang'  => $request->bintang,
             'komentar' => $request->komentar,
-            // 'balasan_admin' dikosongkan karena baru dibuat
         ]);
 
-        return back()->with('success', 'Terima kasih atas ulasan Anda!');
+        return back()->with('success', 'Terima kasih atas testimoni Anda!');
     }
 }

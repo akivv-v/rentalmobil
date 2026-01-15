@@ -26,7 +26,6 @@
 
     <style>
         body {
-            font-family: 'Poppins', sans-serif;
             background: #E8F2FF;
         }
 
@@ -94,7 +93,7 @@
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                         <li>
                             <a class="dropdown-item" href="{{ route('user.riwayat') }}">
-                                <i class="bi bi-receipt"></i> Riwayat Penyewaan
+                                <i class="bi bi-receipt"></i> Riwayat sewa
                             </a>
                         </li>
                         <li>
