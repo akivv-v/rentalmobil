@@ -14,7 +14,9 @@ class Mobil extends Model
         'harga_sewa',
         'status',
         'gambar',
-        'deskripsi'
+        'deskripsi',
+        'tgl_servis_terakhir',
+        'interval_servis'
     ];
 
     /**
@@ -25,4 +27,9 @@ class Mobil extends Model
     {
         return $this->hasMany(Rental::class, 'mobil_id');
     }
+
+    // TAMBAHKAN INI
+    protected $casts = [
+        'tgl_servis_terakhir' => 'date',
+    ];
 }

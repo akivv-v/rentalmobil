@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\RentalController;
 use App\Http\Controllers\Admin\KaryawanController;
 use App\Http\Controllers\Admin\MobilController as AdminMobilController;
 use App\Http\Controllers\Admin\LaporanController;
+use App\Http\Controllers\Admin\ServisController;
 
 // USER
 use App\Http\Controllers\User\DashboardController as UserDashboard;
@@ -75,6 +76,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     // ===============================
     Route::post('/rental/{id}/set-kembali', [RentalController::class, 'setKembali'])
         ->name('rental.set_kembali');
+
+    Route::get('/servis', [ServisController::class, 'index'])->name('servis.index');
+    Route::put('/servis/{id}', [ServisController::class, 'update'])->name('servis.update');
 
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
 });

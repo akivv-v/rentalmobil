@@ -6,8 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin | Rental Mobil</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -153,12 +154,26 @@
         ::-webkit-scrollbar {
             width: 6px;
         }
+
         ::-webkit-scrollbar-track {
             background: #f1f5f9;
         }
+
         ::-webkit-scrollbar-thumb {
             background: #cbd5e1;
             border-radius: 10px;
+        }
+
+        .badge-notification {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 50%;
+            background-color: #ef4444;
+            /* Merah terang */
+            color: white;
+            margin-left: auto;
+            /* Agar nempel di kanan */
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
         }
     </style>
 </head>
@@ -177,7 +192,8 @@
             <span class="nav-label">Utama</span>
             <ul class="nav-list">
                 <li class="nav-item">
-                    <a href="{{ route('admin.dashboard') }}" class="nav-link-custom {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                    <a href="{{ route('admin.dashboard') }}"
+                        class="nav-link-custom {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                         <i class="bi bi-grid-1x2-fill"></i> Dashboard
                     </a>
                 </li>
@@ -186,12 +202,20 @@
             <span class="nav-label">Operasional</span>
             <ul class="nav-list">
                 <li class="nav-item">
-                    <a href="{{ route('admin.rental.index') }}" class="nav-link-custom {{ request()->routeIs('admin.rental.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.rental.index') }}"
+                        class="nav-link-custom {{ request()->routeIs('admin.rental.*') ? 'active' : '' }}">
                         <i class="bi bi-wallet2"></i> Transaksi Rental
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('admin.laporan.index') }}" class="nav-link-custom {{ request()->routeIs('admin.laporan.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.servis.index') }}"
+                        class="nav-link-custom {{ request()->routeIs('admin.servis.*') ? 'active' : '' }}">
+                        <i class="bi bi-tools"></i> Servis Mobil
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('admin.laporan.index') }}"
+                        class="nav-link-custom {{ request()->routeIs('admin.laporan.*') ? 'active' : '' }}">
                         <i class="bi bi-bar-chart-line-fill"></i> Laporan Bulanan
                     </a>
                 </li>
@@ -200,17 +224,20 @@
             <span class="nav-label">Master Data</span>
             <ul class="nav-list">
                 <li class="nav-item">
-                    <a href="{{ route('admin.mobil.index') }}" class="nav-link-custom {{ request()->routeIs('admin.mobil.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.mobil.index') }}"
+                        class="nav-link-custom {{ request()->routeIs('admin.mobil.*') ? 'active' : '' }}">
                         <i class="bi bi-car-front"></i> Data Mobil
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('admin.penyewa.index') }}" class="nav-link-custom {{ request()->routeIs('admin.penyewa.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.penyewa.index') }}"
+                        class="nav-link-custom {{ request()->routeIs('admin.penyewa.*') ? 'active' : '' }}">
                         <i class="bi bi-people"></i> Data Penyewa
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('admin.karyawan.index') }}" class="nav-link-custom {{ request()->routeIs('admin.karyawan.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.karyawan.index') }}"
+                        class="nav-link-custom {{ request()->routeIs('admin.karyawan.*') ? 'active' : '' }}">
                         <i class="bi bi-person-badge"></i> Data Karyawan
                     </a>
                 </li>
@@ -220,7 +247,7 @@
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
                 <button type="submit" class="btn-logout">
-                    <i class="bi bi-box-arrow-right me-2"></i> Keluar 
+                    <i class="bi bi-box-arrow-right me-2"></i> Keluar
                 </button>
             </form>
         </nav>
@@ -231,4 +258,5 @@
     </main>
 
 </body>
+
 </html>
