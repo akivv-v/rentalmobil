@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::table('mobils', function (Blueprint $table) {
             $table->date('tgl_servis_terakhir')->nullable(); // Kapan terakhir servis
             $table->integer('interval_servis')->default(3); // Dalam bulan (3 atau 6)
+             $table->string('catatan_servis')->nullable(); // Catatan tambahan tentang servis
         });
     }
 

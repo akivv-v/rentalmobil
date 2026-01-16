@@ -16,7 +16,8 @@ class Mobil extends Model
         'gambar',
         'deskripsi',
         'tgl_servis_terakhir',
-        'interval_servis'
+        'interval_servis',
+        'catatan_servis'
     ];
 
     /**
