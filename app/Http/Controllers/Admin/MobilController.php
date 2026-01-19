@@ -37,7 +37,7 @@ class MobilController extends Controller
 
         // Pastikan kolom servis memiliki nilai awal agar database tidak error
         $data['catatan_servis'] = $data['catatan_servis'] ?? '-';
-        $data['interval_servis'] = $data['interval_servis'] ?? 6;
+        $data['interval_servis'] = $data['interval_servis'] ?? 3;
 
         if ($request->hasFile('gambar')) {
             $data['gambar'] = $request->file('gambar')->store('mobil', 'public');
