@@ -155,26 +155,73 @@
                     </thead>
                     <tbody>
                         @forelse ($rentals as $item)
-                            <tr>
+                            @php
+                                $tglKembali = \Carbon\Carbon::parse($item->tgl_kembali);
+                                $hariIni = \Carbon\Carbon::today();
+
+                                // Logika Status
+                                $isLate = $item->status == 'disewa' && $hariIni->greaterThan($tglKembali);
+                                $isToday = $item->status == 'disewa' && $hariIni->equalTo($tglKembali);
+                                $isFinished = $item->status == 'selesai';
+
+                                // Styling Baris
+                                $rowStyle = '';
+                                $nameColor = 'text-dark'; // Default hitam
+
+                                if ($isLate) {
+                                    $rowStyle = 'border-left: 4px solid #dc3545; background-color: #fffafb;';
+                                    $nameColor = 'text-danger'; // Nama jadi merah jika telat
+                                } elseif ($isToday) {
+                                    $rowStyle = 'border-left: 4px solid #ffc107; background-color: #fffdf5;';
+                                    $nameColor = 'text-danger'; // Nama jadi merah jika hari ini deadline
+                                } elseif ($isFinished) {
+                                    $rowStyle = 'opacity: 0.7;';
+                                    $nameColor = 'text-muted';
+                                }
+                            @endphp
+
+                            <tr style="{{ $rowStyle }} transition: all 0.3s ease;">
                                 <td class="text-muted">
                                     {{ ($rentals->currentPage() - 1) * $rentals->perPage() + $loop->iteration }}
                                 </td>
+
+                                {{-- INFORMASI PENYEWA --}}
                                 <td>
-                                    <div class="fw-bold text-dark">{{ $item->penyewa->nama }}</div>
+                                    <div class="fw-bold {{ $nameColor }} d-flex align-items-center gap-1">
+                                        @if ($isLate || $isToday)
+                                            <i class="bi bi-exclamation-circle-fill" style="font-size: 12px;"></i>
+                                        @endif
+                                        {{ $item->penyewa->nama }}
+                                    </div>
                                     <div class="text-muted" style="font-size: 12px;">{{ $item->penyewa->no_telp }}</div>
                                 </td>
                                 <td>
-                                    <div class="text-dark">{{ $item->mobil->nama_mobil }}</div>
+                                    <div class="{{ $isFinished ? 'text-muted' : 'text-dark' }}">
+                                        {{ $item->mobil->nama_mobil }}</div>
                                     <div class="badge bg-light text-dark fw-normal border" style="font-size: 10px;">
-                                        {{ $item->mobil->plat_nomor }}</div>
-                                </td>
-                                <td>
-                                    <div class="text-dark">{{ date('d M Y', strtotime($item->tgl_sewa)) }}</div>
-                                    <div class="text-muted" style="font-size: 12px;">{{ $item->lama_sewa }} Hari</div>
-                                </td>
-                                <td>
-                                    <div class="fw-bold text-dark">Rp {{ number_format($item->total_harga, 0, ',', '.') }}
+                                        {{ $item->mobil->plat_nomor }}
                                     </div>
+                                </td>
+                                <td>
+                                    <div class="{{ $isFinished ? 'text-muted' : 'text-dark' }}">
+                                        {{ date('d M Y', strtotime($item->tgl_sewa)) }}</div>
+                                    <div class="small">
+                                        @if ($isFinished)
+                                            <span class="text-success"><i class="bi bi-check-circle"></i> Selesai</span>
+                                        @elseif($isLate)
+                                            <span class="text-danger fw-bold"><i class="bi bi-exclamation-octagon"></i>
+                                                Terlambat {{ $hariIni->diffInDays($tglKembali) }} Hari</span>
+                                        @elseif($isToday)
+                                            <span class="text-warning fw-bold"><i class="bi bi-clock-history"></i> Harus
+                                                Kembali Hari Ini</span>
+                                        @else
+                                            <span class="text-muted">{{ $item->lama_sewa }} Hari</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-bold {{ $isFinished ? 'text-muted' : 'text-dark' }}">Rp
+                                        {{ number_format($item->total_harga, 0, ',', '.') }}</div>
                                     <div class="text-muted text-uppercase" style="font-size: 10px;">
                                         {{ $item->invoice->metode_pembayaran ?? '-' }}</div>
                                 </td>
@@ -188,19 +235,22 @@
                                             ][$item->status] ?? 'bg-light';
                                     @endphp
                                     <span class="status-badge {{ $statusStyle }}">
-                                        {{ ucfirst($item->status) }}
+                                        @if ($isLate && $item->status == 'disewa')
+                                            Overdue
+                                        @else
+                                            {{ ucfirst($item->status) }}
+                                        @endif
                                     </span>
                                 </td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-2">
-                                        {{-- Detail --}}
                                         <a href="{{ route('admin.rental.show', $item->id) }}" class="btn-icon"
                                             title="Lihat Detail">
                                             <i class="bi bi-eye"></i>
                                         </a>
 
-                                        {{-- Konfirmasi --}}
                                         @if ($item->status == 'booking' && $item->invoice)
+                                            {{-- Logika konfirmasi pembayaran tetap sama --}}
                                             @if ($item->invoice->metode_pembayaran !== 'office' && $item->invoice->bukti_bayar)
                                                 <form action="{{ route('admin.rental.konfirmasi', $item->id) }}"
                                                     method="POST">
@@ -224,13 +274,14 @@
                                             <form action="{{ route('admin.rental.set_kembali', $item->id) }}"
                                                 method="POST">
                                                 @csrf
-                                                <button class="btn-icon btn-icon-success" title="Selesaikan">
+                                                <button
+                                                    class="btn-icon {{ $isLate ? 'btn-danger text-white' : 'btn-icon-success' }}"
+                                                    title="Selesaikan Pengembalian">
                                                     <i class="bi bi-arrow-left-right"></i>
                                                 </button>
                                             </form>
                                         @endif
 
-                                        {{-- Hapus --}}
                                         <form action="{{ route('admin.rental.destroy', $item->id) }}" method="POST"
                                             onsubmit="return confirm('Hapus?')">
                                             @csrf @method('DELETE')

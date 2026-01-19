@@ -171,7 +171,7 @@
                                             <div class="p-3 bg-light rounded-3 border-start border-primary border-4">
                                                 <label class="fw-bold d-block mb-1 small text-primary">ISI CATATAN /
                                                     PENGERJAAN:</label>
-                                                <p class="mb-0 text-dark" style="white-space: pre-wrap;">
+                                                <p class="mb-0 text-dark" style="pre-wrap;">
                                                     {{ $m->catatan_servis ?? 'Tidak ada catatan pengerjaan.' }}</p>
                                             </div>
                                         </div>

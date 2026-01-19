@@ -158,6 +158,7 @@ class RentalUserController extends Controller
     // RIWAYAT
     // =======================
 
+    // Pada RentalUserController, pastikan riwayat mengambil data tgl_kembali
     public function riwayatUser()
     {
         $riwayat = Rental::whereHas('penyewa', function ($q) {
@@ -165,25 +166,5 @@ class RentalUserController extends Controller
         })->with('mobil')->orderBy('created_at', 'DESC')->get();
 
         return view('user.rental.riwayat', compact('riwayat'));
-    }
-
-    // =======================
-    // KEMBALIKAN MOBIL
-    // =======================
-
-    public function kembalikan($id)
-    {
-        $rental = Rental::whereHas('penyewa', function ($q) {
-            $q->where('user_id', Auth::id());
-        })->findOrFail($id);
-
-        if ($rental->status !== 'disewa') {
-            return back()->with('error', 'Mobil belum dalam status disewa.');
-        }
-
-        $rental->update(['status' => 'selesai']);
-        $rental->mobil->update(['status' => 'tersedia']);
-
-        return back()->with('success', 'Mobil berhasil dikembalikan.');
     }
 }

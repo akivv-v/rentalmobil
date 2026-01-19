@@ -29,11 +29,22 @@
                         </thead>
                         <tbody>
                             @forelse($riwayat as $r)
+                                @php
+                                    // Logika Real-time pengecekan waktu
+                                    $tglKembali = \Carbon\Carbon::parse($r->tgl_kembali);
+                                    $hariIni = \Carbon\Carbon::today();
+                                    $isWaktunyaKembali = $hariIni->greaterThanOrEqualTo($tglKembali);
+                                @endphp
                                 <tr>
                                     <td class="px-4 py-3">
                                         <span class="fw-bold text-primary">{{ $r->mobil->nama_mobil }}</span>
+                                        <br><small class="text-muted">{{ $r->mobil->plat_nomor }}</small>
                                     </td>
-                                    <td class="py-3">{{ date('d M Y', strtotime($r->tgl_sewa)) }}</td>
+                                    <td class="py-3">
+                                        {{ date('d M Y', strtotime($r->tgl_sewa)) }}
+                                        <i class="bi bi-arrow-right"></i>
+                                        {{ date('d M Y', strtotime($r->tgl_kembali)) }}
+                                    </td>
                                     <td class="py-3 text-center">{{ $r->lama_sewa }} Hari</td>
                                     <td class="py-3 text-end fw-bold">
                                         Rp {{ number_format($r->total_harga, 0, ',', '.') }}
@@ -41,7 +52,7 @@
                                     <td class="py-3 text-center">
                                         <span
                                             class="badge rounded-pill px-3 py-2 
-                                            {{ $r->status == 'booking' ? 'bg-warning text-dark' : ($r->status == 'disewa' ? 'bg-primary' : ($r->status == 'selesai' ? 'bg-success' : 'bg-secondary')) }}">
+                    {{ $r->status == 'booking' ? 'bg-warning text-dark' : ($r->status == 'disewa' ? 'bg-primary' : ($r->status == 'selesai' ? 'bg-success' : 'bg-secondary')) }}">
                                             @if ($r->status == 'booking')
                                                 Menunggu Konfirmasi
                                             @elseif($r->status == 'disewa')
@@ -55,20 +66,26 @@
                                     </td>
                                     <td class="py-3 text-center">
                                         @if ($r->status == 'disewa')
-                                            {{-- Ubah bagian form action di file riwayat user --}}
-                                            <form action="{{ route('admin.rental.set_kembali', $r->id) }}" method="POST"
-                                                class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-primary btn-sm fw-bold"
-                                                    onclick="return confirm('Apakah Anda yakin ingin mengembalikan mobil?')">
-                                                    <i class="bi bi-arrow-return-left"></i> Kembalikan
-                                                </button>
-                                            </form>
+                                            @if ($isWaktunyaKembali)
+                                                {{-- WARNING REAL-TIME --}}
+                                                <div
+                                                    class="alert alert-warning mb-0 py-1 px-2 small fw-bold shadow-sm border-warning">
+                                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                                    Segera kembalikan mobil! <br>
+                                                    <span class="text-dark" style="font-size: 10px;">Batas:
+                                                        {{ $tglKembali->format('d M Y') }}</span>
+                                                </div>
+                                            @else
+                                                <span class="text-primary small fw-bold">
+                                                    <i class="bi bi-info-circle"></i> Mobil sedang Anda gunakan
+                                                </span>
+                                            @endif
+                                        @elseif($r->status == 'booking')
+                                            <span class="text-muted small italic">Menunggu Verifikasi Admin</span>
                                         @elseif($r->status == 'selesai')
-                                            <span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i>
-                                                Terkirim</span>
-                                        @else
-                                            <span class="text-muted small">Menunggu Admin</span>
+                                            <span class="text-success fw-bold">
+                                                <i class="bi bi-check-all"></i> Sudah Dikembalikan
+                                            </span>
                                         @endif
                                     </td>
                                 </tr>
