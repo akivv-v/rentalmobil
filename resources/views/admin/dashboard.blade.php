@@ -116,7 +116,7 @@
                     <i class="bi bi-people"></i>
                 </div>
                 <div>
-                    <h6 class="text-muted small text-uppercase fw-bold mb-1">Total Pelanggan</h6>
+                    <h6 class="text-muted small text-uppercase fw-bold mb-1">Total User</h6>
                     <h3 class="fw-bold mb-0 text-dark">{{ $totalPenyewa }}</h3>
                 </div>
             </div>
