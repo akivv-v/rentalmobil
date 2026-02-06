@@ -129,11 +129,8 @@ class RentalController extends Controller
 
     public function setKembali($id)
     {
-        // Menggunakan eager loading agar performa cepat
         $rental = Rental::with('mobil')->findOrFail($id);
 
-        // --- LOGIKA PENYELARASAN WAKTU ---
-        // Paksa semua waktu ke jam 00:00:00 agar murni menghitung TANGGAL
         $tglKembali = \Carbon\Carbon::parse($rental->tgl_kembali)->startOfDay();
         $hariIni = \Carbon\Carbon::now()->startOfDay();
 
@@ -141,30 +138,23 @@ class RentalController extends Controller
         try {
             $dendaFinal = 0;
 
-            // Cek jika hari ini sudah melewati tanggal kembali
             if ($hariIni->gt($tglKembali)) {
-                $selisihHari = $hariIni->diffInDays($tglKembali);
-                $tarifDenda = 50000; 
+                // PARAMETER 'true' di bawah ini memastikan hasil tidak akan minus
+                $selisihHari = $hariIni->diffInDays($tglKembali, true);
+
+                $tarifDenda = 50000;
                 $dendaFinal = $selisihHari * $tarifDenda;
             }
 
-            // Update data rental
             $rental->update([
                 'status' => 'selesai',
-                'denda'  => $dendaFinal, 
+                'denda'  => abs($dendaFinal), 
             ]);
 
-            // Kembalikan status mobil
             $rental->mobil->update(['status' => 'tersedia']);
 
             DB::commit();
-
-            // Pesan sukses yang dinamis
-            if ($dendaFinal > 0) {
-                return back()->with('success', "Mobil kembali. Terlambat " . $hariIni->diffInDays($tglKembali) . " hari. Denda dicatatkan: Rp " . number_format($dendaFinal, 0, ',', '.'));
-            }
-
-            return back()->with('success', "Mobil kembali tepat waktu.");
+            return back()->with('success', "Mobil kembali. Denda: Rp " . number_format($dendaFinal, 0, ',', '.'));
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
