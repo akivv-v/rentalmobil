@@ -19,15 +19,19 @@ class RentalController extends Controller
         $rentals = Rental::with(['penyewa', 'mobil', 'invoice'])
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
+                    // Cari di nama penyewa
                     $q->whereHas('penyewa', function ($qp) use ($search) {
                         $qp->where('nama', 'like', "%{$search}%");
                     })
+                        // Atau cari di nama mobil
                         ->orWhereHas('mobil', function ($qm) use ($search) {
                             $qm->where('nama_mobil', 'like', "%{$search}%");
-                        });
+                        })
+                        // Atau cari di status
+                        ->orWhere('status', 'like', "%{$search}%");
                 });
             })
-            ->latest()
+            ->orderBy('created_at', 'desc') // Lebih pasti daripada latest() jika ada ambiguity
             ->paginate(10)
             ->withQueryString();
 
@@ -40,10 +44,6 @@ class RentalController extends Controller
         return view('admin.rental.show', compact('rental'));
     }
 
-    /**
-     * FUNGSI UNTUK KONFIRMASI PEMBAYARAN (Baik Transfer maupun Kantor)
-     * Digunakan dari halaman Detail maupun Tombol Aksi di Index
-     */
     public function konfirmasiPembayaran(Request $request, $id)
     {
         // Cari rental atau invoice. Di sini kita asumsikan $id adalah ID Rental 
@@ -129,20 +129,45 @@ class RentalController extends Controller
 
     public function setKembali($id)
     {
+        // Menggunakan eager loading agar performa cepat
         $rental = Rental::with('mobil')->findOrFail($id);
+
+        // --- LOGIKA PENYELARASAN WAKTU ---
+        // Paksa semua waktu ke jam 00:00:00 agar murni menghitung TANGGAL
+        $tglKembali = \Carbon\Carbon::parse($rental->tgl_kembali)->startOfDay();
+        $hariIni = \Carbon\Carbon::now()->startOfDay();
 
         DB::beginTransaction();
         try {
-            $rental->update(['status' => 'selesai']);
+            $dendaFinal = 0;
 
-            // Kembalikan status mobil jadi tersedia
+            // Cek jika hari ini sudah melewati tanggal kembali
+            if ($hariIni->gt($tglKembali)) {
+                $selisihHari = $hariIni->diffInDays($tglKembali);
+                $tarifDenda = 50000; 
+                $dendaFinal = $selisihHari * $tarifDenda;
+            }
+
+            // Update data rental
+            $rental->update([
+                'status' => 'selesai',
+                'denda'  => $dendaFinal, 
+            ]);
+
+            // Kembalikan status mobil
             $rental->mobil->update(['status' => 'tersedia']);
 
             DB::commit();
-            return back()->with('success', 'Mobil berhasil dikembalikan.');
+
+            // Pesan sukses yang dinamis
+            if ($dendaFinal > 0) {
+                return back()->with('success', "Mobil kembali. Terlambat " . $hariIni->diffInDays($tglKembali) . " hari. Denda dicatatkan: Rp " . number_format($dendaFinal, 0, ',', '.'));
+            }
+
+            return back()->with('success', "Mobil kembali tepat waktu.");
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Gagal memproses pengembalian.');
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 

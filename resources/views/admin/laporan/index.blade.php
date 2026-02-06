@@ -122,6 +122,7 @@
                             <th class="py-3">Mobil</th>
                             <th class="py-3">Lama</th>
                             <th class="py-3 text-end">Total Biaya</th>
+                             <th class="py-3 text-end">Denda</th>
                             <th class="py-3 text-center">Status</th>
                         </tr>
                     </thead>
@@ -134,6 +135,7 @@
                                 <td>{{ $item->mobil->nama_mobil }}</td>
                                 <td>{{ $item->lama_sewa }} Hari</td>
                                 <td class="text-end fw-bold">Rp {{ number_format($item->total_harga, 0, ',', '.') }}</td>
+                                <td class="text-end text-danger">Rp {{ number_format($item->denda, 0, ',', '.') }}</td>
                                 <td class="text-center">
                                     <span
                                         class="badge rounded-pill {{ $item->status == 'selesai' ? 'bg-light-success text-success' : 'bg-light-primary text-primary' }} p-2 px-3">

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Rental extends Model
@@ -15,17 +16,19 @@ class Rental extends Model
         'lama_sewa',
         'total_harga',
         'dp',
-        'sisa_bayar',
         'denda',
         'status'
+    ];
+
+    protected $casts = [
+        'denda' => 'float',
+        'total_harga' => 'float',
     ];
 
     public function penyewa()
     {
         return $this->belongsTo(Penyewa::class);
     }
-
-    // app/Models/Rental.php
 
     public function karyawan()
     {
@@ -56,5 +59,26 @@ class Rental extends Model
     public function invoice()
     {
         return $this->hasOne(Invoice::class);
+    }
+
+    public function getDendaAttribute($value)
+    {
+        // Jika sudah selesai, gunakan nilai di database (pastikan tidak negatif)
+        if ($this->status === 'selesai') {
+            return ($value < 0) ? 0 : $value;
+        }
+
+        // Jika masih disewa, hitung denda berjalan
+        if ($this->status === 'disewa') {
+            $tglKembali = Carbon::parse($this->tgl_kembali)->startOfDay();
+            $hariIni = Carbon::now()->startOfDay();
+
+            if ($hariIni->gt($tglKembali)) {
+                $selisihHari = $hariIni->diffInDays($tglKembali);
+                return $selisihHari * 50000;
+            }
+        }
+
+        return 0;
     }
 }
