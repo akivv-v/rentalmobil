@@ -59,6 +59,54 @@
             color: #0e1c36
         }
 
+        /* Tombol Chat Melayang */
+        .floating-chat {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: #0056ff;
+            /* Warna biru sesuai tema kamu */
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 15px rgba(0, 86, 255, 0.3);
+            z-index: 9999;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .floating-chat:hover {
+            transform: scale(1.1);
+            color: white;
+            background-color: #0041c2;
+            box-shadow: 0 6px 20px rgba(0, 86, 255, 0.4);
+        }
+
+        /* Tooltip muncul saat kursor mendekat */
+        .floating-chat::before {
+            content: "Tanya Admin";
+            position: absolute;
+            right: 70px;
+            background: #333;
+            color: #fff;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+        }
+
+        .floating-chat:hover::before {
+            opacity: 1;
+            visibility: visible;
+        }
     </style>
 
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -108,4 +156,6 @@
             <a href="{{ route('user.mobil.index') }}" class="btn btn-primary-custom">Lihat Selengkapnya</a>
         </div>
     </section>
+    <a href="{{ route('user.chat') }}" class="floating-chat shadow">
+        <i class="ri-chat-3-line"></i> </a>
 @endsection

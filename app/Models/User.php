@@ -52,4 +52,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(Penyewa::class);
     }
+
+    public function messages()
+    {
+        return $this->hasMany(Message::class);
+    }
 }

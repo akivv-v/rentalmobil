@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatController;
 
 // ADMIN
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -62,18 +63,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::resource('rental', RentalController::class)
         ->only(['index', 'show', 'destroy']);
 
-    // ===============================
-    // KONFIRMASI PEMBAYARAN RENTAL
-    // ===============================
     Route::post('/rental/{id}/konfirmasi', [RentalController::class, 'konfirmasiPembayaran'])
         ->name('rental.konfirmasi');
 
     Route::post('/invoice/{id}/bayar-kantor', [RentalController::class, 'bayarDiKantor'])
         ->name('invoice.bayar_kantor');
 
-    // ===============================
-    // SET KEMBALI (SELESAI)
-    // ===============================
+    Route::get('/messages', [ChatController::class, 'adminIndex'])->name('chat');
+    Route::get('/messages/{id}', [ChatController::class, 'adminShow'])->name('chat.show');
+
     Route::post('/rental/{id}/set-kembali', [RentalController::class, 'setKembali'])
         ->name('rental.set_kembali');
 
@@ -134,11 +132,11 @@ Route::prefix('user')->name('user.')->middleware('auth')->group(function () {
     Route::get('/ulasan', [UlasanController::class, 'index'])->name('ulasan.index');
     Route::post('/ulasan/store', [UlasanController::class, 'store'])->name('ulasan.store');
 
-    /*
-    |----------------------------------
-    | KEMBALIKAN MOBIL (USER)
-    |----------------------------------
-    */
+    Route::get('/chat', [ChatController::class, 'userChat'])->name('chat');
+    Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+    Route::put('/chat/update/{id}', [ChatController::class, 'updateMessage'])->name('chat.update');
+    Route::delete('/chat/delete/{id}', [ChatController::class, 'deleteMessage'])->name('chat.delete');
+
     Route::post('/rental/kembalikan/{id}', [RentalUserController::class, 'kembalikan'])
         ->name('kembalikan');
 });
